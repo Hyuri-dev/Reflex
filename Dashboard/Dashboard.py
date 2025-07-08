@@ -1,11 +1,9 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
+import reflex as rx
 from collections import Counter
 
-import reflex as rx
 
-from rxconfig import config
-
-class User(rx.Model):
+class User(rx.Base):
   """"Modelo de usuario"""
   name:str
   apellido:str
@@ -15,27 +13,25 @@ class User(rx.Model):
 
 class State(rx.State):
     users: list[User] = [
-      User(
-        name = "hyuri",
-        apellido = "darko",
-        cedula = 4545,
-        genero = "Hombre"
-      )
+      
     ]
     users_for_graph: list[dict] = []
+    usuarios_grafico: list[dict] = []
+    
     
     def añadir_usuario (self, form_data: dict):
       self.users.append(User(**form_data))
+      
       self.transform_data()
     
     def transform_data (self):
       contador_genero = Counter (
-        user.gender for user in self.users
+          User.genero for User in self.users
       )
       
       self.usuarios_grafico = [{
         "name": grupo_genero, "value": count 
-      } for grupo_genero, count in gender.counts.items()]
+      } for grupo_genero, count in contador_genero.items()]
 
 
 
@@ -71,21 +67,20 @@ def formulario_modal () -> rx.Component:
       rx.flex(
             rx.input(
             placeholder="Nombre",
-            name="Nombre", 
+            name="name", 
           ),
           rx.input(
             placeholder="Apellido",
-            name= "Apellido",
+            name= "apellido",
           ),
           rx.input(
-            placeholder="Cedula",
-            name = "Cedula",
-            required= True,
+            placeholder="V",
+            name = "cedula",
           ),
           rx.select(
             ["Hombre" , "Mujer"],
             placeholder = "hombre",
-            name= "Genero"
+            name= "genero"
           ),
           rx.flex(
             rx.dialog.close(
@@ -150,6 +145,8 @@ def index() -> rx.Component:
       width = "100%"
         ),
       grafico(),
+      align="center",
+      width="100%",
     )
 
 
@@ -159,4 +156,5 @@ app = rx.App(
 )
 app.add_page(index,
               title = "Colums data app",
-              description = "Ejemplo de columnas en reflex")
+              description = "Ejemplo de columnas en reflex",
+              on_load = State.transform_data,)
